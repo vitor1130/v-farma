@@ -31,11 +31,13 @@ onMounted(() => {
 const onPrescriptionValidated = () => currentStep.value = 'cpf';
 const onCpfConfirmed = () => currentStep.value = 'payment-select';
 
+// Seleção de pagamento
 const selectPayment = (method) => {
   paymentMethod.value = method;
   currentStep.value = 'processing';
 };
 
+// Finalização
 const onPaymentApproved = () => {
   currentStep.value = 'success';
   setTimeout(() => {
@@ -45,7 +47,7 @@ const onPaymentApproved = () => {
 };
 
 // Teclado CPF
-const addDigit = (n) => { if (cpf.value.length < 11) cpf.value += n; };
+const addDigit = (n) => { if (cpf.value.length < 12) cpf.value += n; };
 const backspace = () => { cpf.value = cpf.value.slice(0, -1); };
 const displayCpf = computed(() => cpf.value || '___.___.___-__');
 </script>

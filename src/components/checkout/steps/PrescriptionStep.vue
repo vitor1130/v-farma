@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import VfarmaButton from '@/components/ui/VfarmaButton.vue'
 
+// EMITE EVENTO DE AVANÇO
 const emit = defineEmits(['next'])
 
+// --- ESTADOS ---
 const code = ref('') // Guarda o número digitado
 const isLoading = ref(false) // Controla o spinner de carregamento
 const errorMessage = ref('') // Guarda mensagem de erro se o código for inválido
@@ -16,7 +18,7 @@ const addDigit = (n) => {
     errorMessage.value = '' // Limpa erro ao digitar
   }
 }
-
+// Apaga o último dígito
 const backspace = () => {
   code.value = code.value.slice(0, -1)
   errorMessage.value = ''
@@ -31,7 +33,7 @@ const validatePrescription = () => {
 
   isLoading.value = true
 
-  // [SIMULAÇÃO] Finge que vai na API da Anvisa validar
+  // Simula validação de API
   setTimeout(() => {
     // Vamos fingir que códigos terminados em "0" são inválidos (pra você testar erro)
     if (code.value.endsWith('0')) {

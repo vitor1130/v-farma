@@ -4,9 +4,9 @@ import VfarmaButton from '../ui/VfarmaButton.vue'
 defineProps({
   product: Object,
 })
-
+// EMITE EVENTO DE ADIÇÃO AO CARRINHO
 const emit = defineEmits(['add'])
-
+// FORMATA PREÇO PARA REAL BRASILEIRO
 const formatPrice = (value) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 </script>

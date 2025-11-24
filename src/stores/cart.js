@@ -3,48 +3,83 @@ import { ref, computed } from 'vue';
 
 export const useCartStore = defineStore('cart', () => {
   
-  // --- DADOS (O que eu preciso guardar) ---
-  const items = ref([]);       // Lista de produtos que o cliente escolheu
-  const discount = ref(0);     // O desconto que ele ganhou (ex: 0.10 é 10%)
+  // --- DADOS ---
+  const items = ref([]);       // Produtos no carrinho
+  const activeCoupon = ref(null); // Guarda o cupom ativo inteiro.
 
-  // --- CÁLCULOS (O computador faz sozinho) ---
+  // --- CÁLCULOS ---
   
-  // Calcula o preço total sem desconto (Soma tudo)
+  // 1. Soma o preço normal de todos os itens
   const subtotal = computed(() => {
     return items.value.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   });
 
-  // Calcula o valor final (Subtotal menos o desconto)
+  // 2. Calcula o total aplicando descontos item por item
   const total = computed(() => {
-    return subtotal.value - (subtotal.value * discount.value);
+    return items.value.reduce((acc, item) => {
+      let itemPrice = item.price;
+
+      // REGRA do cupom específico 
+      if (activeCoupon.value && activeCoupon.value.targetId === item.id) {
+        const desconto = item.price * activeCoupon.value.percent;
+        itemPrice = item.price - desconto;
+      }
+      // REGRA 2 do cupom global 
+      else if (activeCoupon.value && !activeCoupon.value.targetId) {
+        const desconto = item.price * activeCoupon.value.percent;
+        itemPrice = item.price - desconto;
+      }
+
+      return acc + (itemPrice * item.quantity);
+    }, 0);
   });
 
-  // Segurança: O sistema olha a lista e avisa se tem remédio controlado (Tarja Preta/Vermelha)
+  // 3. Calcula quanto foi economizado (para exibir na tela)
+  const discount = computed(() => {
+    return subtotal.value - total.value;
+  });
+
+  // Verifica se precisa de receita
   const needsPrescription = computed(() => {
     return items.value.some(item => item.requiresPrescription === true);
   });
 
-  // --- AÇÕES (O que o sistema faz) ---
+  // --- AÇÕES ---
 
-  // Aqui eu usei PROMISE para fingir que o sistema está verificando o cupom na internet
+  // APLICA CUPOM
   function applyCoupon(code) {
     return new Promise((resolve, reject) => {
-      // O setTimeout faz esperar 1.5 segundos, simulando a demora da rede
       setTimeout(() => {
-        const codigoLimpo = code.toUpperCase().trim(); // Arruma o texto (tira espaços)
+        const codigoLimpo = code.toUpperCase().trim();
 
-        if (codigoLimpo === 'VFARMA10') {
-          discount.value = 0.10; // Dá 10% de desconto
-          resolve({ message: 'Oba! Desconto de 10% aplicado!' });
+        // LISTA DE CUPONS VÁLIDOS (Simulação de Banco de Dados)
+        const validCoupons = [
+          { code: 'VFARMA10', percent: 0.10, targetId: null }, // 10% Global
+          { code: 'CPW07', percent: 0.07, targetId: null }, // 15% Global
+          { code: 'IMBROXAVEL22', percent: 0.22, targetId: 11 },   // 22% só no Viagra (ID 11)
+          { code: 'NEYMAR20', percent: 0.20, targetId: 4 },  // 20% só no Dorflex (ID 4)
+          { code: 'EMA19', percent: 0.19, targetId: 10 }   // 19% só na cloroquina (ID 7)
+        ];
+        // Verifica se o cupom é válido
+        const couponFound = validCoupons.find(c => c.code === codigoLimpo);
+        // Aplica o cupom ou rejeita
+        if (couponFound) {
+          activeCoupon.value = couponFound;
+          
+          if (couponFound.targetId) {
+            resolve({ message: 'Cupom aplicado ao produto da promoção!' });
+          } 
+          if (!couponFound.targetId) {
+            resolve({ message: `Desconto de ${couponFound.percent * 100}% aplicado!` }); 
+          }
         } else {
-          discount.value = 0;
-          reject('Cupom inválido.'); // Avisa que deu erro
+          activeCoupon.value = null;
+          reject('Cupom inválido ou expirado.');
         }
       }, 1500);
     });
   }
-
-  // Adiciona no carrinho (se já existe, só aumenta a quantidade)
+  // ADICIONA AO CARRINHO
   function addToCart(product) {
     const existing = items.value.find(i => i.id === product.id);
     if (existing) {
@@ -53,20 +88,18 @@ export const useCartStore = defineStore('cart', () => {
       items.value.push({ ...product, quantity: 1 });
     }
   }
-
-  // Tira do carrinho
+  // REMOVE DO CARRINHO
   function removeFromCart(productId) {
     const index = items.value.findIndex(i => i.id === productId);
     if (index !== -1) items.value.splice(index, 1);
     
-    // Se o carrinho ficar vazio, eu tiro o desconto
-    if (items.value.length === 0) discount.value = 0;
+    // Se esvaziar o carrinho, remove o cupom
+    if (items.value.length === 0) activeCoupon.value = null;
   }
-
-  // Limpa tudo (para o próximo cliente)
+    //liMPA O CARRINHO
   function clearCart() {
     items.value = [];
-    discount.value = 0;
+    activeCoupon.value = null;
   }
 
   return { items, subtotal, total, discount, needsPrescription, applyCoupon, addToCart, removeFromCart, clearCart };
