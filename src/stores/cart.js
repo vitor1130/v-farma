@@ -55,7 +55,7 @@ export const useCartStore = defineStore('cart', () => {
         // LISTA DE CUPONS VÁLIDOS (Simulação de Banco de Dados)
         const validCoupons = [
           { code: 'VFARMA10', percent: 0.10, targetId: null }, // 10% Global
-          { code: 'CPW07', percent: 0.07, targetId: null }, // 15% Global
+          { code: 'CPW7', percent: 0.70, targetId: null }, // 15% Global
           { code: 'IMBROXAVEL22', percent: 0.22, targetId: 11 },   // 22% só no Viagra (ID 11)
           { code: 'NEYMAR20', percent: 0.20, targetId: 4 },  // 20% só no Dorflex (ID 4)
           { code: 'EMA19', percent: 0.19, targetId: 10 }   // 19% só na cloroquina (ID 7)
